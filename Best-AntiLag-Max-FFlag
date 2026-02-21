@@ -1,0 +1,91 @@
+-- Made By Rixer95-x2 in Youtube.
+-- setfflag,can work if your exploit/executor support setfflag like Delta example.
+local Players = game:GetService("Players")
+local Lighting = game:GetService("Lighting")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local lp = Players.LocalPlayer
+
+local fflags = {
+    ["FFlagHandleAltEnterFullscreenManually"] = "False",
+    ["DFIntCSGLevelOfDetailSwitchingDistance"] = "0",
+    ["DFIntCSGLevelOfDetailSwitchingDistanceL12"] = "0",
+    ["DFIntCSGLevelOfDetailSwitchingDistanceL23"] = "0",
+    ["DFIntCSGLevelOfDetailSwitchingDistanceL34"] = "0",
+    ["DFFlagTextureQualityOverrideEnabled"] = "True",
+    ["DFIntTextureQualityOverride"] = "1",
+    ["FIntDebugForceMSAASamples"] = "4",
+    ["DFFlagDisableDPIScale"] = "True",
+    ["FFlagDebugGraphicsPreferD3D11"] = "True",
+    ["FFlagDebugSkyGray"] = "True",
+    ["DFIntDebugFRMQualityLevelOverride"] = "1",
+    ["FIntRenderShadowIntensity"] = "0",
+    ["DFFlagDebugRenderForceTechnologyVoxel"] = "True",
+    ["FFlagGlobalWindRendering"] = "False",
+    ["FIntRenderLocalLightFadeInMs"] = "0",
+    ["FFlagDebugDisplayFPS"] = "True",
+    ["DFIntTaskSchedulerTargetFps"] = "240",
+    ["FFlagTaskSchedulerLimitTargetFpsTo2402"] = "False",
+    ["FFlagGameBasicSettingsFramerateCap5"] = "False",
+    ["FFlagReducePacketLoss"] = "True",
+    ["FFlagEnableFastGameJoin"] = "True",
+    ["DFIntTeleportClientAssetPreloadingHundredthsPercentage"] = "100000",
+    ["DFIntHttpBatchApi_minWaitMs"] = "5",
+    ["FFlagFastGPULightCulling3"] = "True",
+    ["TextureQualityOverrideEnabled"] = "True"
+}
+
+pcall(function()
+    for fflag, value in pairs(fflags) do
+        setfflag(fflag, value)
+    end
+end)
+
+Lighting.GlobalShadows = false
+Lighting.FogEnd = 10000
+Lighting.Brightness = 1.5
+Lighting.ClockTime = 12
+
+for _, effect in pairs(Lighting:GetChildren()) do
+    if effect:IsA("BloomEffect") or effect:IsA("SunRaysEffect") or effect:IsA("DepthOfFieldEffect") or effect:IsA("BlurEffect") then
+        effect.Enabled = false
+    end
+end
+
+Workspace.StreamingEnabled = true
+Workspace.StreamingMinRadius = 128
+Workspace.StreamingTargetRadius = 1024
+
+game:GetService("UserGameSettings").SavedQualityLevel = Enum.SavedQualitySetting.Automatic
+
+if lp.Character then
+    game:GetService("ContentProvider"):PreloadAsync({lp.Character})
+end
+lp.CharacterAdded:Connect(function(char)
+    task.wait(0.5)
+    game:GetService("ContentProvider"):PreloadAsync({char})
+end)
+
+spawn(function()
+    while true do
+        collectgarbage("collect")
+        task.wait(45)
+    end
+end)
+
+local mt = getrawmetatable(game)
+local oldIndex = mt.__index
+setreadonly(mt, false)
+mt.__index = newcclosure(function(self, idx)
+    if idx == "DistanceLowerBound" then return 0 end
+    return oldIndex(self, idx)
+end)
+setreadonly(mt, true)
+
+local lastTime = tick()
+RunService.Heartbeat:Connect(function()
+    if tick() - lastTime > 0.1 then
+        lastTime = tick()
+        collectgarbage("step")
+    end
+end)
